@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="speeds_array">
+        <item>UI</item>
+        <item>NORMAL</item>
+        <item>GAME</item>
+        <item>FASTEST</item>
+    </string-array>
+</resources>

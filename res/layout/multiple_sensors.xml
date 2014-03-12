@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+<LinearLayout 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <!-- ACCELEROMETER SENSOR -->
+    
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        
+        <TextView 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Accelerometer"
+            android:textAppearance="?android:attr/textAppearanceLarge"/>
+        
+        <LinearLayout 
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Speed" />
+                
+	                <Spinner
+	                android:id="@+id/speedAccelerometer"
+	                android:layout_width="wrap_content"
+	                android:layout_height="wrap_content"
+	                android:layout_weight="1" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal" >
+
+                
+                <CheckBox android:id="@+id/printResultsAccelerometer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="Print results" />
+                
+                <Button 
+                    android:id="@+id/buttonStartAccelerometer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Start Accelerometer"
+                    android:onClick="startOrStopASensor"/>
+
+            </LinearLayout>
+            
+            <LinearLayout 
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    
+                    <TextView android:id="@+id/xAccelerometer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="X: 0.0"/>
+                    
+                    <TextView android:id="@+id/yAccelerometer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Y: 0.0"/>
+                    
+                    <TextView android:id="@+id/zAccelerometer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Z: 0.0"/>
+                </LinearLayout>
+            
+        </LinearLayout>
+        
+    </LinearLayout>
+    
+    <!-- ROTATION VECTOR SENSOR -->
+
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        
+        <TextView 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rotation Vector"
+            android:textAppearance="?android:attr/textAppearanceLarge"/>
+        
+        <LinearLayout 
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Speed" />
+                
+                    <Spinner
+                    android:id="@+id/speedRotationVector"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal" >
+
+                
+                <CheckBox android:id="@+id/printResultsRorationVector"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="Print results" />
+                
+                <Button 
+                    android:id="@+id/buttonStartRotationVector"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Start RotationVector"
+                    android:onClick="startOrStopASensor"/>
+
+            </LinearLayout>
+            
+            <LinearLayout 
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    
+                    <TextView android:id="@+id/xRotationVector"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="X: 0.0"/>
+                    
+                    <TextView android:id="@+id/yRotationVector"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Y: 0.0"/>
+                    
+                    <TextView android:id="@+id/zRotationVector"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Z: 0.0"/>
+                </LinearLayout>
+            
+        </LinearLayout>
+        
+    </LinearLayout>
+    
+    <!-- GYROSCOPE SENSOR -->
+    
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        
+        <TextView 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gyroscope"
+            android:textAppearance="?android:attr/textAppearanceLarge"/>
+        
+        <LinearLayout 
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Speed" />
+                
+                    <Spinner
+                    android:id="@+id/speedGyroscope"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal" >
+
+                
+                <CheckBox android:id="@+id/printResultsGyroscope"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="Print results" />
+                
+                <Button 
+                    android:id="@+id/buttonStartGyroscope"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Start Gyroscope"
+                    android:onClick="startOrStopASensor"/>
+
+            </LinearLayout>
+            
+            <LinearLayout 
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    
+                    <TextView android:id="@+id/xGyroscope"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="X: 0.0"/>
+                    
+                    <TextView android:id="@+id/yGyroscope"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Y: 0.0"/>
+                    
+                    <TextView android:id="@+id/zGyroscope"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Z: 0.0"/>
+                </LinearLayout>
+            
+        </LinearLayout>
+        
+    </LinearLayout>
+    
+    <!-- PROXIMITY SENSOR -->
+    
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        
+        <TextView 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Proximity Sensor"
+            android:textAppearance="?android:attr/textAppearanceLarge"/>
+        
+        <LinearLayout 
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Speed" />
+                
+                    <Spinner
+                    android:id="@+id/speedProximity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal" >
+
+                <CheckBox android:id="@+id/printResultsProximity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="Print results" />
+                
+                <Button 
+                    android:id="@+id/buttonStartProximitySensor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Start Proximity Sensor"
+                    android:onClick="startOrStopASensor"/>
+
+            </LinearLayout>
+            
+            <LinearLayout 
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    
+                    <TextView android:id="@+id/valueProximity"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Value: 0.0"/>
+                </LinearLayout>
+            
+        </LinearLayout>
+        
+    </LinearLayout>
+    
+    <!-- LUMINOSITY SENSOR -->
+    
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        
+        <TextView 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Luminosity"
+            android:textAppearance="?android:attr/textAppearanceLarge"/>
+        
+        <LinearLayout 
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Speed" />
+                
+                    <Spinner
+                    android:id="@+id/speedLuminosity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal" >
+
+                
+                <CheckBox android:id="@+id/printResultsLuminosity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="Print results" />
+                
+                <Button 
+                    android:id="@+id/buttonStartLuminosity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Start Luminosity Sensor"
+                    android:onClick="startOrStopASensor"/>
+
+            </LinearLayout>
+            
+            <LinearLayout 
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    
+                    <TextView android:id="@+id/valueLuminosity"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Value: 0.0"/>      
+                </LinearLayout>
+            
+        </LinearLayout>
+        
+    </LinearLayout>
+
+</LinearLayout>
+
+</ScrollView>
