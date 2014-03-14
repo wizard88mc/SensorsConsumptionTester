@@ -38,6 +38,7 @@ public class MultipleSensors extends Activity implements SensorEventListener, On
 	private boolean recordingGyroscope = false;
 	private boolean recordingProximity = false;
 	private boolean recordingLuminosity = false;
+	private boolean recordingLinearAcceleration = false;
 	
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer;
@@ -45,21 +46,23 @@ public class MultipleSensors extends Activity implements SensorEventListener, On
 	private Sensor mGyroscope;
 	private Sensor mProximity;
 	private Sensor mLuminosity;
+	private Sensor mLinearAcceleration;
 	
-	private int speedAccelerometer;
-	private int speedRotationVector;
+	private int speedAccelerometer = (1000 / 30) * 1000;
+	private int speedRotationVector = (1000 / 30) * 1000;
 	private int speedGyroscope;
 	private int speedProximity;
 	private int speedLuminosity;
+	private int speedLinearAcceleration;
 	
-	private int sizeBuffer = 1000 / 8; // 1 secondo
-	private int nextPositionInsertElement = 0;
+	private double bufferDuration = 500000000.0; // 1 secondo
 	private boolean bufferFull = false;
-	private ArrayList<VectorValues> lastValuesForMean = new ArrayList<VectorValues>();
-	private float[] lastValuesAccelerometer = new float[3];
+	private ArrayList<VectorValues> buffer = new ArrayList<VectorValues>();
+	private float[] lastValueRotationVector = null;
+	
 	private long lastTimestampAccelerometer = 0;
-	private float[] componentsAccelerometerWithAngle = new float[3];
-	private float[] componentsLinearAccelerationWithAngle = new float[3];
+	private long lastTimestampLinearAcceleration = 0;
+	private long lastTimestampRotationVector = 0;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -73,12 +76,14 @@ public class MultipleSensors extends Activity implements SensorEventListener, On
 		((Spinner) findViewById(R.id.speedGyroscope)).setAdapter(adapter);
 		((Spinner) findViewById(R.id.speedProximity)).setAdapter(adapter);
 		((Spinner) findViewById(R.id.speedLuminosity)).setAdapter(adapter);
+		((Spinner) findViewById(R.id.speedLinear)).setAdapter(adapter);
 		
 		((Spinner) findViewById(R.id.speedAccelerometer)).setOnItemSelectedListener(this);
 		((Spinner) findViewById(R.id.speedRotationVector)).setOnItemSelectedListener(this);
 		((Spinner) findViewById(R.id.speedGyroscope)).setOnItemSelectedListener(this);
 		((Spinner) findViewById(R.id.speedProximity)).setOnItemSelectedListener(this);
 		((Spinner) findViewById(R.id.speedLuminosity)).setOnItemSelectedListener(this);
+		((Spinner) findViewById(R.id.speedLinear)).setOnItemSelectedListener(this);
 		
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -86,6 +91,7 @@ public class MultipleSensors extends Activity implements SensorEventListener, On
 		mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 		mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
 		mLuminosity = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+		mLinearAcceleration = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
 	}
 
 	@Override
@@ -97,6 +103,7 @@ public class MultipleSensors extends Activity implements SensorEventListener, On
 	
 	public void startOrStopASensor(View view) {
 		
+		Log.d("CLICK", "button clicked");
 		int sensorID = view.getId();
 		
 		switch (sensorID) {
@@ -107,11 +114,25 @@ public class MultipleSensors extends Activity implements SensorEventListener, On
 				((Button) findViewById(R.id.buttonStartAccelerometer)).setText("Start Accelerometer");
 			}
 			else {
+				Log.d("SPEED", Integer.toString(speedAccelerometer));
 				mSensorManager.registerListener(this, mAccelerometer, speedAccelerometer);
 				((Button) findViewById(R.id.buttonStartAccelerometer)).setText("Stop Accelerometer");
 			}
 			recordingAccelerometer = !recordingAccelerometer;
 			break;
+		}
+		case R.id.buttonLinearRotation:
+		{
+			if (recordingLinearAcceleration) {
+				mSensorManager.unregisterListener(this, mLinearAcceleration);
+				((Button) findViewById(R.id.buttonLinearRotation)).setText("Start Linear Acceleration");
+			}
+			else {
+				Log.d("SPEED", Integer.toString(speedLinearAcceleration));
+				mSensorManager.registerListener(this, mLinearAcceleration, speedLinearAcceleration);
+				((Button) findViewById(R.id.buttonLinearRotation)).setText("Stop Linear Acceleration");
+			}
+			recordingLinearAcceleration = !recordingLinearAcceleration;
 		}
 		case R.id.buttonStartGyroscope:
 		{
@@ -154,6 +175,7 @@ public class MultipleSensors extends Activity implements SensorEventListener, On
 				((Button) findViewById(R.id.buttonStartRotationVector)).setText("Start Rotation Vector");
 			}
 			else {
+				Log.d("SPEED", Integer.toString(speedRotationVector));
 				mSensorManager.registerListener(this, mRotationVector, speedRotationVector);
 				((Button) findViewById(R.id.buttonStartRotationVector)).setText("Stop Rotation Vector");
 			}
@@ -175,61 +197,21 @@ public class MultipleSensors extends Activity implements SensorEventListener, On
 		if (event.sensor == mAccelerometer) {
 			
 			if (lastTimestampAccelerometer != 0) {
-				Log.d("TIMESTAMP", Long.toString(event.timestamp - lastTimestampAccelerometer));
+				Log.d("TIMESTAMP", Long.toString((event.timestamp - lastTimestampAccelerometer) / 1000000));
 			}
 			lastTimestampAccelerometer = event.timestamp;
 			
-			//lastValuesAccelerometer = (float[])event.values;
-			lastValuesForMean.add(nextPositionInsertElement, new VectorValues(event.values[0]
-					, event.values[1], event.values[2], event.timestamp));
+			actWithAccelerometerDataAndRotation(event);
 			
-			nextPositionInsertElement++;
-			if (nextPositionInsertElement == sizeBuffer) {
-				nextPositionInsertElement = 0; bufferFull = true;
+			//actWithAccelerometerDataAndMitzell(event);
+		}
+		else if (event.sensor == mLinearAcceleration) {
+			
+			if (lastTimestampLinearAcceleration != 0) {
+				Log.d("TIMESTAMP", Long.toString((event.timestamp - lastTimestampLinearAcceleration) / 1000000));
 			}
-			
-			if (bufferFull) {
-				float meanValueX = 0, meanValueY = 0, meanValueZ = 0;
-				
-				for (int i = 0; i < sizeBuffer; i++) {
-					VectorValues values = lastValuesForMean.get(i);
-					meanValueX += values.x;
-					meanValueY += values.y;
-					meanValueZ += values.z;
-				}
-				
-				meanValueX /= sizeBuffer;
-				meanValueY /= sizeBuffer;
-				meanValueZ /= sizeBuffer;
-				
-				//lastValuesAccelerometer[0] = event.values[0] - meanValueX;
-				//lastValuesAccelerometer[1] = event.values[1] - meanValueY;
-				//lastValuesAccelerometer[2] = event.values[2] - meanValueZ;
-				
-				float x = event.values[0] - meanValueX,
-						y = event.values[1] - meanValueY,
-						z = event.values[2] - meanValueZ;
-				
-				float normMeanValues = (float)Math.sqrt(Math.pow(meanValueX, 2) + Math.pow(meanValueY, 2) 
-						+ Math.pow(meanValueZ, 2));
-				
-				float vectorProduct = (x * meanValueX + y * meanValueY + z * meanValueZ) / (float)Math.pow(normMeanValues, 2);
-			
-				float vectorPComponentX = meanValueX * vectorProduct,
-						vectorPComponentY = meanValueY * vectorProduct,
-						vectorPComponentZ = meanValueZ * vectorProduct;
-				
-				float vectorHComponentX = x - vectorPComponentX,
-						vectorHComponentY = y - vectorPComponentY,
-						vectorHComponentZ = z - vectorPComponentZ;
-				
-				if (((CheckBox) findViewById(R.id.printResultsAccelerometer)).isChecked()) {
-					((TextView) findViewById(R.id.xAccelerometer)).setText("X: " + vectorPComponentX + " " + vectorHComponentX);
-					((TextView) findViewById(R.id.yAccelerometer)).setText("Y: " + vectorPComponentY + " " + vectorHComponentY);
-					((TextView) findViewById(R.id.zAccelerometer)).setText("Z: " + vectorPComponentZ + " " + vectorHComponentZ);
-				}
-			}
-			
+			lastTimestampLinearAcceleration = event.timestamp;
+			actWithLinearAccelerationData(event);
 		}
 		else if (event.sensor == mGyroscope) {
 			if (((CheckBox) findViewById(R.id.printResultsGyroscope)).isChecked()) {
@@ -250,41 +232,138 @@ public class MultipleSensors extends Activity implements SensorEventListener, On
 		}
 		else if (event.sensor == mRotationVector) {
 			
-			float norm = this.calculateNorm(event.values[0], event.values[1], event.values[2]);
-			float alpha = 2 * (float)Math.asin(norm);
-			if (lastValuesAccelerometer != null) {
-				this.calculateXYZSecond(event.values[0] / norm, event.values[1] / norm, event.values[2] / norm, alpha, 
-						lastValuesAccelerometer[0], lastValuesAccelerometer[1], lastValuesAccelerometer[2], this.componentsAccelerometerWithAngle);
+			lastValueRotationVector = event.values.clone();
+			
+			if (lastTimestampRotationVector != 0) {
+				Log.d("TIMESTAMP", Long.toString((event.timestamp - lastTimestampRotationVector) / 1000000));
 			}
+			lastTimestampRotationVector = event.timestamp;
+
 			if (((CheckBox) findViewById(R.id.printResultsRorationVector)).isChecked()) {
-				/*((TextView) findViewById(R.id.xRotationVector)).setText("X: " + event.values[0]);
+				((TextView) findViewById(R.id.xRotationVector)).setText("X: " + event.values[0]);
 				((TextView) findViewById(R.id.yRotationVector)).setText("Y: " + event.values[1]);
-				((TextView) findViewById(R.id.zRotationVector)).setText("Z: " + event.values[2]);*/
-				((TextView) findViewById(R.id.xRotationVector)).setText("X: " + componentsAccelerometerWithAngle[0]);
+				((TextView) findViewById(R.id.zRotationVector)).setText("Z: " + event.values[2]);
+				/*((TextView) findViewById(R.id.xRotationVector)).setText("X: " + componentsAccelerometerWithAngle[0]);
 				((TextView) findViewById(R.id.yRotationVector)).setText("Y: " + componentsAccelerometerWithAngle[1]);
-				((TextView) findViewById(R.id.zRotationVector)).setText("Z: " + componentsAccelerometerWithAngle[2]);
+				((TextView) findViewById(R.id.zRotationVector)).setText("Z: " + componentsAccelerometerWithAngle[2]);*/
 			}
 		}
 		
 	}
 	
-	private void calculateXYZSecond(float x, float y, float z, float teta, float xFirst, float yFirst, float zFirst,
-            float[] components) {
+	private void calculateXYZSecond(float x, float y, float z, float teta, 
+			float xFirst, float yFirst, float zFirst) {
 
 		double xSquare = Math.pow(x, 2), ySquare = Math.pow(y, 2), zSquare = Math.pow(z, 2);
 		double sinTeta = Math.sin(teta), cosTeta = Math.cos(teta);
 		
-		components[0] = (float)((xSquare + (1 - xSquare) * cosTeta) * xFirst +
+		double finalX = (float)((xSquare + (1 - xSquare) * cosTeta) * xFirst +
 		(((1 - cosTeta) * x * y) - sinTeta * z) * yFirst +
 		(((1 - cosTeta) * x * z) + sinTeta * y) * zFirst);
 		
-		components[1] = (float)((((1 - cosTeta) * y * x) + sinTeta * z) * xFirst +
+		double finalY = (float)((((1 - cosTeta) * y * x) + sinTeta * z) * xFirst +
 		(ySquare + (1 - ySquare) * cosTeta) * yFirst +
 		(((1 - cosTeta) * y * z) - sinTeta * x)  * zFirst);
 		
-		components[2] = (float)((((1 - cosTeta) * z * x) - sinTeta * y) * xFirst +
+		double finalZ = (float)((((1 - cosTeta) * z * x) - sinTeta * y) * xFirst +
 		((1 - cosTeta) * z * y + sinTeta * x) * yFirst +
 		(zSquare + (1 - zSquare) * cosTeta) * zFirst);
+	}
+	
+	private void actWithAccelerometerDataAndRotation(SensorEvent event) {
+		
+		if (buffer.size() > 0 && event.timestamp - buffer.get(0).timestamp 
+				> bufferDuration) {
+			bufferFull = true;
+		}
+		else {
+			buffer.add(new VectorValues(event.values[0], event.values[1], event.values[2],
+					event.timestamp));
+		}
+		
+		if (bufferFull) {
+			float meanValueX = 0, meanValueY = 0, meanValueZ = 0;
+			
+			for (int i = 0; i < buffer.size(); i++) {
+				meanValueX += buffer.get(i).x;
+				meanValueY += buffer.get(i).y;
+				meanValueZ += buffer.get(i).z;
+			}
+			
+			meanValueX /= buffer.size();
+			meanValueY /= buffer.size();
+			meanValueZ /= buffer.size();
+			
+			float x = event.values[0] - meanValueX,
+					y = event.values[1] - meanValueY,
+					z = event.values[2] - meanValueZ;
+			
+			if (lastValueRotationVector != null) {
+				
+				float norm = this.calculateNorm(event.values[0], event.values[1], event.values[2]);
+				float alpha = 2 * (float)Math.asin(norm);
+				
+				this.calculateXYZSecond(lastValueRotationVector[0] / norm, lastValueRotationVector[1] / norm, 
+						lastValueRotationVector[2] / norm, alpha, 
+						event.values[0], event.values[1], event.values[2]);
+			}
+		}
+	}
+	
+	private void actWithAccelerometerDataAndMitzell(SensorEvent event) {
+		if (buffer.size() > 0 && event.timestamp - buffer.get(0).timestamp 
+				> bufferDuration) {
+			bufferFull = true;
+		}
+		else {
+			buffer.add(new VectorValues(event.values[0], event.values[1], event.values[2],
+					event.timestamp));
+		}
+		
+		if (bufferFull) {
+			float meanValueX = 0, meanValueY = 0, meanValueZ = 0;
+			
+			for (int i = 0; i < buffer.size(); i++) {
+				meanValueX += buffer.get(i).x;
+				meanValueY += buffer.get(i).y;
+				meanValueZ += buffer.get(i).z;
+			}
+			
+			meanValueX /= buffer.size();
+			meanValueY /= buffer.size();
+			meanValueZ /= buffer.size();
+			
+			float x = event.values[0] - meanValueX,
+					y = event.values[1] - meanValueY,
+					z = event.values[2] - meanValueZ;
+			
+			float normMeanValues = (float)Math.sqrt(Math.pow(meanValueX, 2) + Math.pow(meanValueY, 2) 
+					+ Math.pow(meanValueZ, 2));
+			
+			float vectorProduct = (x * meanValueX + y * meanValueY + z * meanValueZ) / (float)Math.pow(normMeanValues, 2);
+		
+			float vectorPComponentX = meanValueX * vectorProduct,
+					vectorPComponentY = meanValueY * vectorProduct,
+					vectorPComponentZ = meanValueZ * vectorProduct;
+			
+			float vectorHComponentX = x - vectorPComponentX,
+					vectorHComponentY = y - vectorPComponentY,
+					vectorHComponentZ = z - vectorPComponentZ;
+		}
+	}
+	
+	private void actWithLinearAccelerationData(SensorEvent event) {
+		
+		if (lastValueRotationVector != null) {
+			
+			float norm = this.calculateNorm(event.values[0], event.values[1], event.values[2]);
+			float alpha = 2 * (float)Math.asin(norm);
+			
+			this.calculateXYZSecond(lastValueRotationVector[0] / norm, lastValueRotationVector[1] / norm, 
+					lastValueRotationVector[2] / norm, alpha, 
+					event.values[0], event.values[1], event.values[2]);
+		}
+		
 	}
 	
 	private float calculateNorm(float x, float y, float z) {
@@ -296,47 +375,50 @@ public class MultipleSensors extends Activity implements SensorEventListener, On
 			long id) {
 		// TODO Auto-generated method stub
 		
-		int speed = -1;
+		Log.d("Log id view", Integer.toString(((Spinner) arg0).getId()));
+		Log.d("Log id linear", Integer.toString(R.id.speedLinear));
+		int frequency = 1;
 		Log.d("ID", Long.toString(id));
 		if (id == 0) {
-			speed = SensorManager.SENSOR_DELAY_UI;
+			frequency = 20;
 		}
 		else if (id == 1) {
-			speed = SensorManager.SENSOR_DELAY_NORMAL;
+			frequency = 30;
 		}
 		else if (id == 2) {
-			speed = SensorManager.SENSOR_DELAY_GAME;
-		}
-		else if (id == 3) {
-			speed = SensorManager.SENSOR_DELAY_FASTEST;
+			frequency = 50;
 		}
 		
-		switch (view.getId()) {
+		switch (((Spinner) arg0).getId()) {
 		case R.id.speedAccelerometer:
-			speedAccelerometer = speed;
-			updateSpeedSensor(mAccelerometer, speedAccelerometer);
+			Log.d("Spinner", "acclerometer");
+			speedAccelerometer = (1000 / frequency) * 1000;
 			break;
-
+			
 		case R.id.speedGyroscope:
-			speedGyroscope = speed;
-			updateSpeedSensor(mGyroscope, speedGyroscope);
+			Log.d("Spinner", "gyroscope");
+			speedGyroscope = (1000 / frequency) * 1000;
 			break;
 		
 		case R.id.speedLuminosity: 
-			speedLuminosity = speed;
-			updateSpeedSensor(mLuminosity, speedLuminosity);
+			Log.d("Spinner", "luminosity");
+			speedLuminosity = (1000 / frequency) * 1000;
 			break;
 			
 		case R.id.speedProximity:
-			speedProximity = speed;
-			updateSpeedSensor(mProximity, speedProximity);
+			Log.d("Spinner", "proximity");
+			speedProximity = (1000 / frequency) * 1000;
 			break;
 			
 		case R.id.speedRotationVector:
-			speedRotationVector = speed;
-			updateSpeedSensor(mRotationVector, speedRotationVector);
+			Log.d("Spinner", "rotation vector");
+			speedRotationVector = (1000 / frequency) * 1000;
 			break;
 		
+		case R.id.speedLinear:
+			Log.d("Spinner", "Changing speed linear");
+			speedLinearAcceleration = (1000 / frequency) * 1000;
+			break;
 		default:
 			break;
 		}

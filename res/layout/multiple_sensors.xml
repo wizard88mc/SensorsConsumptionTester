@@ -91,6 +91,46 @@
         
     </LinearLayout>
     
+    <!-- LINEAR ACCELERATION SENSOR -->
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Linear Acceleration"
+            android:textAppearance="?android:attr/textAppearanceLarge"/>
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            
+            <TextView
+            	android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Speed" />
+                
+          	<Spinner
+	          	android:id="@+id/speedLinear"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_weight="1" />
+          	
+          	<Button
+          	    android:id="@+id/buttonLinearRotation"
+          	    android:layout_width="wrap_content"
+          	    android:layout_height="wrap_content"
+          	    android:text="Start Linear Acceleration"
+          	    android:onClick="startOrStopASensor" />
+            
+        </LinearLayout>
+        
+        </LinearLayout>
+    
     <!-- ROTATION VECTOR SENSOR -->
 
     <LinearLayout 

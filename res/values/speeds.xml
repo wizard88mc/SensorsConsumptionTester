@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="speeds_array">
-        <item>UI</item>
-        <item>NORMAL</item>
-        <item>GAME</item>
-        <item>FASTEST</item>
+        <item>20Hz</item>
+        <item>30Hz</item>
+        <item>50Hz</item>
     </string-array>
 </resources>
