@@ -1,6 +1,8 @@
 package it.cs.unipd.multiplesensors;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import it.cs.unipd.androiddefinitivesensorstester.R;
 import android.app.Activity;
@@ -57,12 +59,15 @@ public class MultipleSensors extends Activity implements SensorEventListener, On
 	
 	private double bufferDuration = 500000000.0; // 1 secondo
 	private boolean bufferFull = false;
-	private ArrayList<VectorValues> buffer = new ArrayList<VectorValues>();
+	private List<VectorValues> buffer = new ArrayList<VectorValues>();
 	private float[] lastValueRotationVector = null;
 	
 	private long lastTimestampAccelerometer = 0;
 	private long lastTimestampLinearAcceleration = 0;
 	private long lastTimestampRotationVector = 0;
+	
+	private List<ArrayList<Long>> windowArchiver = new ArrayList<ArrayList<Long>>();
+	private long maxDurationWindow = 500000000;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -202,6 +207,43 @@ public class MultipleSensors extends Activity implements SensorEventListener, On
 			lastTimestampAccelerometer = event.timestamp;
 			
 			actWithAccelerometerDataAndRotation(event);
+			
+			ArrayList<Long> finalFloatValues = new ArrayList<Long>();
+			finalFloatValues.add(event.timestamp);
+			finalFloatValues.add((long)event.values[0]);
+			finalFloatValues.add((long)event.values[1]);
+			finalFloatValues.add((long)event.values[2]);
+			
+			// INIZIO SEZIONE CON SLIDING WINDOW SU TEMPO
+			if (windowArchiver.size() > 0 && 
+					windowArchiver.get(windowArchiver.size() - 1).get(0) - 
+					windowArchiver.get(0).get(0) > maxDurationWindow) {
+				
+				double classification = 0.0;
+				for (int i = 0; i < 1000; i++) {
+					classification = i * 10 - i * 20 / windowArchiver.size() - Math.pow(i, 2);
+				}
+				
+				windowArchiver = windowArchiver.subList(windowArchiver.size() / 2, windowArchiver.size());
+				
+			}
+			
+			windowArchiver.add(finalFloatValues);
+			
+			// INIZIO SEZIONE CON SLIDING WINDOW SU DATI
+			if (windowArchiver.size() > 0 && 
+					windowArchiver.get(windowArchiver.size() - 1).get(3) <= 0 &&
+					finalFloatValues.get(3) >= 0) {
+				
+				double classification = 0.0;
+				for (int i = 0; i < 1000; i++) {
+					classification = i * 10 - i * 20 / windowArchiver.size() - Math.pow(i, 2);
+				}
+				
+				windowArchiver.clear();
+			}
+			
+			windowArchiver.add(finalFloatValues);
 			
 			//actWithAccelerometerDataAndMitzell(event);
 		}
